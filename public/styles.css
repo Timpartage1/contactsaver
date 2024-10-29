@@ -1,0 +1,60 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background: #f4f4f4;
+  }
+  
+  .contact-container {
+    width: 400px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+  
+  input[type="text"], button {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin: 5px 0;
+    font-size: 1em;
+    border-radius: 5px;
+  }
+  
+  button {
+    background: #5a67d8;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background: #434190;
+  }
+  
+  table {
+    width: 100%;
+    margin-top: 20px;
+  }
+  
+  table, th, td {
+    border-collapse: collapse;
+    padding: 10px;
+  }
+  
+  th, td {
+    text-align: left;
+  }
+  
+  button[type="submit"] {
+    background-color: #ff5c5c;
+  }
+  
+  button[type="submit"]:hover {
+    background-color: #e04747;
+  }
+  

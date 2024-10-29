@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Saver</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Modal for Success or Failure Message -->
+  <div class="modal fade" id="feedbackModal" tabindex="-1" role="dialog" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title" id="feedbackModalLabel">Feedback</h5>
+          <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body" id="modalMessage"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phone-container mt-5">
+    <div class="screen">
+      <h2 class="text-center mt-2">Contacts</h2>
+      <ul class="list-group" id="contactList">
+        <% contacts.forEach(contact => { %>
+          <li class="list-group-item d-flex justify-content-between align-items-center" data-id="<%= contact.id %>">
+            <div>
+              <strong><%= contact.name %></strong><br>
+              <small><%= contact.phoneNumber %></small>
+            </div>
+            <div>
+              <button type="button" class="btn btn-sm btn-info edit-button">Edit</button>
+              <button type="button" class="btn btn-sm btn-danger delete-button">Delete</button>
+            </div>
+          </li>
+        <% }) %>
+      </ul>
+    </div>
+
+    <!-- Keypad and Input Field -->
+    <div class="keypad mt-3">
+      <input type="text" class="form-control text-center" id="phoneNumber" placeholder="Enter Phone Number" readonly>
+      <div class="row mt-3">
+        <% [1,2,3,4,5,6,7,8,9,0].forEach(num => { %>
+          <div class="col-4 mb-2">
+            <button class="btn btn-primary btn-block" onclick="enterDigit(<%= num %>)"><%= num %></button>
+          </div>
+        <% }) %>
+        <div class="col-4 mb-2">
+          <button class="btn btn-warning btn-block" onclick="backspace()">←</button>
+        </div>
+      </div>
+      <button type="button" class="btn btn-success btn-block mt-2" onclick="saveContact()">Save Contact</button>
+    </div>
+  </div>
+
+  <!-- JavaScript to handle modal, AJAX requests, and keypad functionality -->
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function showModal(message, success = true) {
+      $('#modalMessage').text(message);
+      $('#feedbackModal .modal-header').toggleClass('bg-success', success);
+      $('#feedbackModal .modal-header').toggleClass('bg-danger', !success);
+      $('#feedbackModal').modal('show');
+    }
+
+    function enterDigit(digit) {
+      const phoneNumberInput = document.getElementById("phoneNumber");
+      phoneNumberInput.value += digit;
+    }
+
+    function backspace() {
+      const phoneNumberInput = document.getElementById("phoneNumber");
+      phoneNumberInput.value = phoneNumberInput.value.slice(0, -1);
+    }
+
+    function saveContact() {
+      const name = prompt("Enter the name:");
+      const phoneNumber = document.getElementById("phoneNumber").value;
+      if (name && phoneNumber) {
+        $.ajax({
+          type: "POST",
+          url: "/add",
+          data: { name: name, phoneNumber: phoneNumber },
+          success: function(response) {
+            showModal("Contact saved successfully!", true);
+            setTimeout(() => location.reload(), 1000); // Reload to update the contact list
+          },
+          error: function(error) {
+            showModal("Failed to save contact. Please try again.", false);
+          }
+        });
+      } else {
+        showModal("Please enter both name and phone number.", false);
+      }
+    }
+
+    // Update contact
+    $(document).on("click", ".edit-button", function(event) {
+      event.preventDefault();
+      const contactId = $(this).closest("li").data("id");
+      const currentName = $(this).closest("li").find("strong").text();
+      const currentPhoneNumber = $(this).closest("li").find("small").text();
+
+      const newName = prompt("Edit name:", currentName);
+      const newPhoneNumber = prompt("Edit phone number:", currentPhoneNumber);
+
+      if (newName && newPhoneNumber) {
+        $.ajax({
+          type: "POST",
+          url: `/update/${contactId}`,
+          data: { name: newName, phoneNumber: newPhoneNumber },
+          success: function(response) {
+            showModal("Contact updated successfully!", true);
+            setTimeout(() => location.reload(), 1000);
+          },
+          error: function(error) {
+            showModal("Failed to update contact. Please try again.", false);
+          }
+        });
+      }
+    });
+
+    // Delete contact with confirmation
+    $(document).on("click", ".delete-button", function(event) {
+      event.preventDefault();
+      const contactId = $(this).closest("li").data("id");
+
+      // Show confirmation prompt
+      const userConfirmed = confirm("Are you sure you want to delete this contact?");
+      if (userConfirmed) {
+        $.ajax({
+          type: "POST",
+          url: `/delete/${contactId}`,
+          success: function(response) {
+            showModal("Contact deleted successfully!", true);
+            setTimeout(() => location.reload(), 1000);
+          },
+          error: function(error) {
+            showModal("Failed to delete contact. Please try again.", false);
+          }
+        });
+      }
+    });
+  </script>
+
+  <!-- Custom CSS for Phone-like UI -->
+  <style>
+    .phone-container {
+      max-width: 400px;
+      margin: 0 auto;
+      border: 2px solid #333;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .screen {
+      background: #e6e6e6;
+      padding: 10px;
+      height: 300px;
+      overflow-y: auto;
+    }
+    .keypad {
+      background: #f2f2f2;
+      padding: 20px;
+      border-top: 1px solid #ddd;
+    }
+  </style>
+</body>
+</html>
